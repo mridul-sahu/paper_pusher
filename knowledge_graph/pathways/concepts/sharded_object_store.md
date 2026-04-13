@@ -24,7 +24,7 @@ The **Sharded Object Store** is a per-host data management layer in Pathways, si
 1. **HBM-aware**: Unlike Ray's object store (which only manages host DRAM), Pathways tracks buffers in both host memory and device HBM.
 2. **Opaque handles**: Client programs hold references via opaque handles that allow the system to **migrate** objects transparently.
 3. **Intermediate value storage**: Objects are stored while waiting to be transferred between accelerators or passed to subsequent computations.
-4. **Ownership labels**: Objects are tagged with ownership labels for **garbage collection** on program or client failure.
+4. **Ownership labels**: Objects are tagged with ownership labels for **garbage collection on failure** of program or client.
 5. **Back-pressure**: Computations are stalled (via simple back-pressure) when they cannot allocate memory because other computations' buffers temporarily occupy HBM.
 6. **Sharded buffer abstraction**: The client uses a logical buffer abstraction that may be distributed over multiple devices, amortizing bookkeeping (including reference counting) at logical-buffer granularity instead of per-shard.
 

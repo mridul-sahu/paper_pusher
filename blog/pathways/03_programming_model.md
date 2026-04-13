@@ -1,160 +1,91 @@
-# Part 3: Programming Model — Write Python, Scale to Thousands of TPUs
+# Part 3: The Programming Model — Write Python, Scale to Thousands of TPUs
 
-> *"A user program runs the client library within a single Python process, and uses the familiar JAX API to distribute computations."*
+> "The programming model... uses a simple Python API that will be familiar to users of current frameworks such as JAX or TensorFlow, while also supporting MPMD programs."
 > — §3, Pathways paper
 
 ---
 
-## The Central Challenge: Abstraction Without Sacrifice
+## Summary
 
-A distributed ML system is only as good as the API it presents to researchers. If the programming model is too low-level (raw MPI calls, manual device placement), researchers spend more time fighting the system than doing science. If it's too abstract (hiding device topology, data movement), performance suffers because the system can't exploit data locality or hardware-specific optimizations.
-
-Pathways threads this needle by building on **JAX's existing programming model** and extending it with a **resource manager** that decouples logical computation from physical hardware. The user writes standard JAX/Python code. Pathways handles everything else.
+This section of the paper details how a researcher actually "talks" to Pathways. The goal was to provide a familiar Python interface that hides the complexity of managing thousands of distributed accelerators, virtualizing hardware, and coordinating heterogeneous computations.
 
 ---
 
-## JAX in 60 Seconds
+## Everything Is a Sharded Compiled Function
 
-For readers unfamiliar with JAX, here's the essential mental model. JAX (Bradbury et al., 2018) is a Python framework for composable numerical computing with three key primitives:
+In Pathways, the fundamental unit of computation is a **compiled function** (usually from XLA). When a user writes a program, they aren't managing individual devices; they are managing **sharded computations**.
 
-1. **`jax.jit`** — Traces a Python function and compiles it to an XLA (Accelerated Linear Algebra) program that runs natively on accelerators. The compiled program is a **static computation graph**: all shapes and types must be known at trace time.
+A sharded computation:
+1. Runs on a set of **virtual devices**.
+2. Expects inputs sharded in a specific way (e.g., partitioned by batch).
+3. Produces outputs sharded in a specific way.
 
-2. **`jax.pmap` / `jax.pjit`** — Distributes a jit-compiled function across multiple devices using SPMD parallelism. The user annotates tensor axes with **sharding constraints** (e.g., "shard the batch dimension across 8 devices"), and the XLA compiler inserts the necessary collective operations.
+Pathways' magic is that it handles the **resharding** automatically. If Computation A produces data sharded one way, and Computation B (which depends on A) needs it sharded another way, the Pathways runtime inserts "transfer" nodes into its internal dataflow graph to move and shuffle the data between accelerators.
 
-3. **Functional transformations** — `jax.grad`, `jax.vmap`, etc., compose with `jit` and `pmap`. A user can write a simple single-device loss function and mechanically derive the distributed, batched, gradient-computing version.
+---
+
+## The Python API
+
+The paper describes a simple decorator-based approach:
 
 ```python
-# Single-device scalar loss function
-def loss_fn(params, batch):
-    logits = model(params, batch['input'])
-    return cross_entropy(logits, batch['label'])
+# 1. Define a standard compiled function (e.g., using JAX or TF)
+@jax.jit
+def train_step(state, batch):
+    # Standard training logic here...
+    return new_state
 
-# Automatic gradient computation + compilation + distribution
-@jax.pjit
-def train_step(params, batch):
-    grads = jax.grad(loss_fn)(params, batch)
-    return params - 0.001 * grads
+# 2. Assign it to virtual devices in a Pathways program
+@pw.program
+def distributed_training(dataset):
+    # Initialize state on a virtual device set (e.g., a 2D mesh of 32 TPUs)
+    state = pw.init_state(train_step, mesh_shape=(8, 4))
+    
+    for batch in dataset:
+        # The runtime handles the sharding/dispatch of this call
+        # across all 32 TPUs in parallel.
+        state = train_step(state, batch)
 ```
 
-The key insight from JAX's design is that **compiled functions** (the output of `jax.jit`) are the fundamental unit of accelerator work. They have statically known input/output shapes, can be serialized into XLA HLO (High Level Optimizer) programs, and are executable on any compatible accelerator without modification.
+### Key Differences from JAX
+
+In multi-controller JAX, you would run this script on **every host**, and they would manually stay in sync. In Pathways, you run this script **once**, on a single client machine. The client machine traces the `@pw.program` block, builds a dataflow graph, and ships it to the Pathways runtime for execution.
+
+---
+
+## Virtual Device Virtualization
+
+One of the most powerful features of the Pathways programming model is **virtual device sets**.
+
+Researchers don't request "TPU core #45." Instead, they request high-level topologies:
+- "Give me a 1D slice of 128 TPUs."
+- "Give me a 2D mesh of 512 TPUs with a specific aspect ratio."
+
+The **Resource Manager** (see [Part 4a](04a_system_architecture_resource_manager.md)) maps these virtual devices to physical ones. This allows the system to move computations around if a chip fails or if another user needs more resources, without the researcher changing a single line of Python code.
+
+---
+
+## From Python to MLIR
+
+Under the hood, Pathways converts the Python `@pw.program` into a low-level **IR (Intermediate Representation)** using the **MLIR** framework.
+
+This IR goes through several compiler passes:
+1. **Lowering**: Converting high-level sharded ops into specific physical data transfers.
+2. **Buffer Allocation**: Deciding exactly where in the TPU's memory (HBM) each tensor will live.
+3. **Plaque Conversion**: Converting the IR into a dataflow graph that the coordination substrate (Plaque) can execute.
 
 ![Programming Model Lecture](./assets/03-programming-model-lecture.png)
 
 ---
 
-## From JAX to Pathways: What Changes
+## Why This Wins
 
-When running under Pathways, the user's JAX code is **unchanged**—but the underlying execution model shifts fundamentally:
+By virtualizing the hardware and automating the coordination, the Pathways programming model does three things:
 
-### Multi-Controller JAX (Standard)
-
-```
-User Python → jit trace → XLA compile → dispatch to local accelerators
-                                          (via PCIe, same host)
-```
-
-Each invocation of `jax.pjit` exclusively owns the accelerators it was launched on. The user must manually request the right number of hosts when launching the job. If a host fails, the entire job crashes.
-
-### Single-Controller Pathways
-
-```
-User Python → jit trace → XLA compile → submit to Pathways runtime
-                                          (via RPC, any host)
-```
-
-The Pathways runtime then:
-1. **Breaks** the compiled function into per-device **shards** (one per participating accelerator).
-2. **Assigns** shards to physical devices via the **Resource Manager** (see [Part 4a](04a_system_architecture_resource_manager.md)).
-3. **Enqueues** shards for execution via the distributed coordination layer (**Plaque**, see [Part 4c](04c_system_architecture_coordination.md)).
-4. **Returns futures** to the client so execution can overlap with subsequent dispatch work.
-
-### Virtual Devices and Resource Abstraction
-
-The most impactful user-facing change is that Pathways introduces **virtual devices**. Instead of programming against `jax.devices()` (which returns physical TPU/GPU handles), the user requests a **virtual device mesh** from the resource manager:
-
-```python
-# Old (multi-controller JAX):
-devices = jax.devices()  # Returns physical TPUs on this host
-
-# New (Pathways):
-virtual_mesh = pathways.resource_manager.request(
-    device_type="TPUv4",
-    topology=[4, 8]  # 4×8 grid of virtual devices
-)
-```
-
-The resource manager maps this virtual mesh to physical hardware transparently. This means:
-
-- **Elastic scaling:** The same program can run on 32, 256, or 2048 TPUs—just change the mesh request.
-- **Migration:** If a physical device fails, the resource manager can remap the virtual mesh to healthy hardware.
-- **Multi-tenancy:** Two programs can share the same physical TPU island, each seeing its own virtual mesh.
+1. **Enables MPMD**: You can call `model_a()` on one set of 128 devices and `model_b()` on another set of 128 devices in the same program. Pathways handles the communication between them.
+2. **Simplifies Research**: Researchers focus on the model logic, not the `AllToAll` synchronization logic.
+3. **Improves Portability**: You can write a program for a generic "512-TPU mesh" and run it on a v3 pod today and a v4 pod tomorrow without changes.
 
 ---
 
-## The Compiled Function Abstraction
-
-The paper introduces a precise characterization of the computational units that flow through the system (Appendix B):
-
-> A **compiled function** is a sub-computation whose:
-> 1. Input and output **types and shapes** are known before input data is computed.
-> 2. Loop bounds are either **static** or have a maximum trip count with early termination.
-> 3. Conditionals are **functional** — both branches produce the same output type, and resources are allocated for the worst case.
-
-These constraints exist because of the co-evolution between ML frameworks and accelerator hardware (detailed in [Part 7](07_appendices.md)). They enable:
-
-- **Static memory allocation** — The system knows exactly how much HBM each function needs, enabling pre-allocation without runtime fragmentation.
-- **Asynchronous enqueuing** — Because resource needs are known in advance, the system can enqueue compiled functions *before* their input data is ready, building up a pipeline of work on the accelerator.
-- **Compiler optimizations** — XLA can perform layout assignment, operator fusion, and automatic rematerialization because the entire function is visible at compile time.
-
----
-
-## Expressing MPMD Computations
-
-While standard JAX's `pjit` is designed for SPMD, Pathways extends the programming model to support **MPMD (Multiple Program, Multiple Data)**. The user can express computations where different compiled functions run on different hardware:
-
-```python
-# Conceptual MPMD workflow in Pathways
-# Stage 1: embedding lookup on island A
-embedding = pathways.run(embed_fn, inputs, devices=island_a)
-
-# Stage 2: transformer forward on island B
-logits = pathways.run(transformer_fn, embedding, devices=island_b)
-
-# Stage 3: loss & backward on island A
-loss = pathways.run(loss_fn, logits, devices=island_a)
-```
-
-Each `run` call creates a node in the Pathways computation graph. The system handles:
-- **Data transfers** between islands (embedding → transformer, logits → loss).
-- **Gang-scheduling** to ensure all devices in an island are synchronized.
-- **Buffer management** to avoid unnecessary copies or memory waste.
-
-This is the programming model that enables **pipeline parallelism** and **MoE training** at thousand-chip scale.
-
----
-
-## Input Data Processing
-
-An overlooked but critical detail: JAX has deliberately **avoided re-implementing data loading pipelines** (Appendix C). In practice, `tensorflow/datasets` is commonly used for JAX input processing. Pathways leverages this by:
-
-1. Instantiating a **CPU-based TensorFlow executor** on each Pathways worker host.
-2. Allowing user programs to **serialize input processing** into a TensorFlow graph.
-3. Distributing data loading across the workers, so that input pipelines can saturate accelerators even at massive scale.
-
----
-
-## The Programming Model in Context
-
-| Feature | Multi-Controller JAX | Pathways |
-|---------|---------------------|----------|
-| Client model | Many (one per host) | Single Python process |
-| Device access | Physical, exclusive | Virtual, shareable |
-| Parallelism | SPMD only | SPMD + MPMD |
-| Failure recovery | Job restart | Transparent remapping |
-| Code changes | N/A | ~Zero (same JAX API) |
-
-The genius of the Pathways programming model is that it achieves the generality of TensorFlow v1's distributed dataflow model—arbitrary graph topologies, heterogeneous computations, dynamic control flow—while maintaining the ergonomics of JAX's simple functional API. The user writes the same Python code they've always written. The system handles the rest.
-
----
-
-*Next up: [Part 4a — The Resource Manager: How Pathways Wrangles Thousands of Accelerators →](04a_system_architecture_resource_manager.md)*
+*Next up: [Part 4a — The Resource Manager: Virtualizing the World's Most Powerful Hardware →](04a_system_architecture_resource_manager.md)*

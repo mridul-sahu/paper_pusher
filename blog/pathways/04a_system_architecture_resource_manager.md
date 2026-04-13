@@ -1,146 +1,85 @@
 # Part 4a: System Architecture — The Resource Manager
 
-> *"The Pathways resource manager maintains a global view of the state of the system's accelerator resources."*
+> "The resource manager... is responsible for the centralized management of devices across all of the islands."
 > — §4.1, Pathways paper
 
 ---
 
-## Why Resource Management Is Non-Trivial
+## Summary
 
-In a multi-controller system, resource management is trivially simple: each host owns its accelerators. Period. There's nothing to negotiate, no sharing, no virtualization.
-
-But Pathways' single-controller architecture—where a central client dispatches work across thousands of accelerators owned by many hosts—demands a **global resource manager** that can:
-
-1. Track the state of every accelerator in the cluster.
-2. Map logical (virtual) devices to physical hardware.
-3. Allocate contiguous groups of devices with the right **network topology**.
-4. Support **multi-tenancy** at millisecond timescales.
-5. Handle failures, migrations, and elastic scaling.
+The **Resource Manager** is the "brain" of the Pathways cluster. In this section, the paper describes how Pathways moves away from the traditional model (where programs own hardware exclusively) and toward a **virtualized, shared resource pool**. It is the component that makes multi-tenancy and high utilization possible at the scale of thousands of chips.
 
 ---
 
-## The Architecture
+## The Islands of Compute
 
-The Pathways resource manager runs as a **centralized service** within the Pathways runtime. It maintains a global view of:
+Pathways manages hardware organized into **islands**. An island is typically a collection of accelerators (like a TPU Pod or a GPU Cluster) that are connected by a high-speed, low-latency interconnect like **ICI** (Inter-Chip Interconnect) or **NVLink**.
 
-- **Physical device topology** — Which TPU chips exist, how they're connected (ICI mesh and DCN), and which host machines they're attached to.
-- **Virtual device mappings** — Which virtual devices (as seen by user programs) map to which physical devices.
-- **Allocation state** — Which devices are currently in use, by which programs, and when they'll be released.
+Computations *within* an island are incredibly fast. Computations *between* islands happen over the standard **Datacenter Network (DCN)**, which is slower and higher latency. The Resource Manager's job is to intelligently map a user's program onto these islands to minimize DCN usage and maximize ICI performance.
 
-### Virtual vs. Physical Devices
+---
 
-This is the central abstraction. The resource manager presents users with **virtual devices** that behave like physical devices but are:
+## The Request: Virtual Device Sets
 
-- **Dynamically assignable** — The same virtual device can map to different physical hardware across runs, or even mid-run.
-- **Topology-aware** — Virtual device meshes preserve the logical connectivity expected by the computation (e.g., a 4×8 mesh of virtual TPUs maps to a 4×8 region of the physical ICI mesh).
-- **Sharable** — Multiple virtual device meshes from different programs can map to the same physical hardware, enabling multi-tenancy.
+When a client wants to run a program, it doesn't ask for specific physical cores. Instead, it requests a **Virtual Device Set**.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   User Program A                        │
-│              Virtual Mesh: 2×4 TPUv4                    │
-│         [v0] [v1] [v2] [v3]                            │
-│         [v4] [v5] [v6] [v7]                            │
-└──────────────────┬──────────────────────────────────────┘
-                   │  Resource Manager mapping
-                   ▼
-┌─────────────────────────────────────────────────────────┐
-│             Physical TPU Pod (2048 chips)                │
-│  ┌──────────────────────────────────────┐               │
-│  │  [p0] [p1] [p2] [p3] ...           │               │
-│  │  [p4] [p5] [p6] [p7] ...  ← Program A mapped here  │
-│  │  [p8] [p9] ...                      │               │
-│  │  ...                                │               │
-│  └──────────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────┘
+```python
+# The client requests a logical resource group
+virtual_devices = pw.make_virtual_device_set()
+slice_a = virtual_devices.add_slice(tpu_devices=256, shape=(16, 16))
 ```
 
-![Resource Manager Architecture](./assets/04-system-architecture-lecture.png)
+This request specifies the **count** and **topology** (the shape of the mesh) required for the computation.
 
 ---
 
-## Topology-Aware Allocation
+## The Mapping: Virtual to Physical
 
-This is where the resource manager earns its complexity budget. TPU pods are not flat pools of interchangeable chips—they are physically arranged in **2D or 3D mesh topologies** with dedicated **Inter-Chip Interconnect (ICI)** links. The bandwidth and latency between any two chips depends on their position in the mesh.
+The Resource Manager takes those virtual requests and performs a **matching algorithm** against the cluster's current state.
 
-When a user requests a virtual device mesh, the resource manager must find a **contiguous region** of the physical mesh that:
+1. **Topology Awareness**: If a researcher asks for a 16x16 mesh, the Resource Manager looks for a contiguous physical block of TPUs that supports that mesh shape with minimal communication hops.
+2. **Load Balancing**: It spreads work across available islands to avoid hotspots.
+3. **Elasticity**: It can add or remove backend compute resources dynamically. If an island's capacity increases, the Resource Manager can immediately start assigning more virtual slices to it.
 
-1. **Matches the requested topology** (e.g., a 4×4×2 slice of TPUv4).
-2. **Minimizes cross-region communication** by placing all chips on the same ICI mesh when possible.
-3. **Avoids fragmentation** that would leave small, unusable islands of free chips scattered across the pod.
-
-This is essentially a **multi-dimensional bin-packing problem**, and it's NP-hard in the general case. The paper describes using heuristics and policies that trade off allocation speed for placement quality.
+Once the mapping is determined, the Resource Manager provides the client with a set of **physical device identifiers**.
 
 ---
 
-## The Allocation Flow
+## The "Transparent" Future
 
-When a client requests accelerator resources, the following happens:
+The paper hints at a future (now realized in systems like Cloud TPU) where this mapping is **transparently re-allocatable**.
 
-```
-1. Client → Resource Manager: "I need a 4×8 virtual mesh of TPUv4s"
-2. Resource Manager:
-   a. Checks available capacity across all connected TPU pods
-   b. Finds a contiguous 4×8 region in the physical ICI mesh
-   c. Creates virtual device handles
-   d. Returns virtual device mesh to client
-3. Client → Pathways Runtime: "Execute this computation on virtual mesh M"
-4. Runtime:
-   a. Resolves virtual → physical mapping
-   b. Dispatches shards to physical devices
-   c. Sets up data transfer channels between physical devices
-```
-
-### Multi-Island Allocation
-
-For computations that span multiple TPU **islands** (connected via DCN rather than ICI), the resource manager coordinates allocation across islands:
-
-- Each island has 512–1024+ TPU chips connected via high-bandwidth ICI.
-- Islands are connected via **Datacenter Network (DCN)**, which is lower bandwidth but higher capacity.
-- The resource manager can allocate virtual meshes that **span multiple islands**, transparently handling the different communication characteristics.
-
-This is the mechanism that enabled the paper's headline result: training a **64B-parameter Transformer** data-parallel over **two islands of 512 TPUs each** (1,024 TPUs total), with cross-island gradient transfers via DCN achieving **97.2% throughput** compared to a single-island SPMD baseline (§5.3, Figure 12).
+- **Migration**: If a chip in Island A is failing, the Resource Manager should be able to "pause" the computation and "resume" it on Island B by re-mapping the virtual devices to new physical ones.
+- **Suspend/Resume**: If a high-priority job arrives, the Resource Manager could temporarily reclaim an island from a lower-priority job, suspend it to disk, and resume it later when resources are free.
 
 ---
 
-## Multi-Tenancy Support
+## Why Centralization Wins
 
-The resource manager also enables **time-multiplexing** of accelerators. Multiple programs can share the same physical devices:
+By centralizing resource management, Pathways avoids the **"fragmentation" problem** of multi-controller systems.
 
-1. **Program A** is allocated virtual devices that map to physical chips 0–7 from time 0–10ms.
-2. **Program B** is allocated the **same** physical chips from time 10–20ms.
+In the old world:
+- User A takes 512 TPUs.
+- User B takes 512 TPUs.
+- A 1024-TPU slot is "fragmented" even if neither user is currently using their TPUs.
 
-This is critically important because many ML workloads have **bursty** computation patterns:
-- An MoE model only activates 2 out of 128 experts per token—leaving 126 experts' worth of hardware **idle** in an exclusive-ownership model.
-- Fine-tuning workloads often have short bursts of gradient computation followed by long pauses waiting for evaluation.
+In the Pathways world:
+- The Resource Manager sees both users' needs.
+- Because of **gang-scheduling** (see [Part 4d](04d_system_architecture_gang_scheduling.md)), it can interleave their computations on the same 512 TPUs with millisecond precision, ensuring the expensive hardware never sits idle between training steps.
 
-With the resource manager's multi-tenancy support, the Pathways **gang-scheduler** (see [Part 4d](04d_system_architecture_gang_scheduling.md)) can interleave programs at millisecond timescales. The paper demonstrates that with 16 concurrent clients submitting programs to the same devices, individual computations of just 0.33ms are enough to achieve **~100% device utilization** (§5.2, Figure 8).
-
----
-
-## Failure Handling and Elasticity
-
-Because the resource manager maintains a **virtual → physical mapping**, it can respond to hardware failures by:
-
-1. Detecting the failure (e.g., a TPU chip becomes unresponsive).
-2. **Remapping** the affected virtual device to a healthy physical device.
-3. Notifying the runtime to redirect future dispatches.
-
-This is fundamentally impossible in multi-controller systems, where the user's program is directly bound to physical hardware. In Pathways, recovery is **transparent to the user code**.
+![Resource Manager Lecture](./assets/04-system-architecture-lecture.png)
 
 ---
 
-## Key Design Decisions
+## Summary Table: Resource Manager's Responsibilities
 
-| Decision | Rationale |
-|----------|-----------|
-| Centralized resource manager | Global view enables optimal placement and multi-tenancy |
-| Virtual device abstraction | Decouples user code from physical hardware topology |
-| Topology-aware allocation | Preserves ICI locality for communication-heavy workloads |
-| Per-island scheduling | Avoids single-point bottleneck while maintaining gang-scheduling correctness |
-
-The resource manager is the **foundation** of everything Pathways does. Without it, there's no multi-tenancy, no MPMD, no failure recovery, no elasticity. It is the single most important difference between a multi-controller system and Pathways.
+| Responsibility | Description |
+|----------------|-------------|
+| **Device Inventory** | Keeps track of all physical accelerators and their interconnect topology. |
+| **Virtualization** | Translates logical mesh requests into specific physical device lists. |
+| **Backend Elasticity** | Handles the dynamic addition/removal of compute resources from the pool. |
+| **Multi-Tenancy** | Coordinates how many different clients can share the same physical island. |
 
 ---
 
-*Next up: [Part 4b — The Client: How Pathways Avoids the Single-Controller Bottleneck →](04b_system_architecture_client.md)*
+*Next up: [Part 4b — The Client: How One Machine Dispatches Work to Thousands →](04b_system_architecture_client.md)*

@@ -1,16 +1,15 @@
 # Part 4d: System Architecture — Gang Scheduling
 
-> *"TPUs are restricted to run a single program at a time, with no local pre-emption, mostly because their high-performance RDMA communication implementation between devices makes safe pre-emption difficult without distributed coordination."*
-> — Appendix A.5, Pathways paper
+> "The gang scheduler... ensures that all coordinating computations are enqueued in a globally consistent order."
+> — §4, Pathways paper
 
 ---
 
-## The Deadlock Problem
+## The Deadlock Dilemma
 
-To understand why gang-scheduling is essential—not optional—you need to understand TPU hardware constraints.
+To understand gang scheduling, we must first understand the unique constraint of **TPUs** (though the same logic applies to specialized GPU interconnects like NVLink).
 
-TPU chips communicate via a custom **Inter-Chip Interconnect (ICI)** mesh using direct **RDMA (Remote Direct Memory Access)**. This means:
-
+TPUs use a high-speed, direct Inter-Chip Interconnect (**ICI**). Key properties:
 1. TPU A can write directly into TPU B's memory without involving B's host CPU.
 2. This is extremely fast (~TB/s aggregate bandwidth), but…
 3. It requires **both** TPU A and TPU B to be in a **compatible state**. If A is sending data that B isn't expecting (because B is running a different program), the result is at best corrupted data and at worst a **system deadlock**.

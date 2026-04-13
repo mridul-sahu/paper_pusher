@@ -8,73 +8,36 @@ tags:
   - hardware
   - metrics
   - performance
-  - TPU
-  - GPU
 related:
   - gang_scheduling
+  - resource_manager
   - parallel_asynchronous_dispatch
-  - jax_tf_comparison
 ---
 
-## Key Metrics from the Paper
+## Definition
 
-### Dispatch Overhead (§5.1)
+Accelerator utilization metrics measure how effectively an ML system keeps expensive hardware (TPUs/GPUs) busy with actual computation versus idling due to coordination, data transfer, or software overhead.
 
-- **Pathways matches JAX throughput** for computation sizes ≥ 2.3 ms (16 hosts, 128 TPUs) and ≥ 35 ms (512 hosts, 2048 TPUs).
-- Pathways **outperforms** TF and Ray single-controller systems across all configurations.
-- In **Fused** mode, Pathways matches JAX up to **1000 TPU cores**.
-- In **Chained** mode, Pathways outperforms JAX OpByOp up to **256 cores**.
+## Key Metrics in Pathways Evaluation
 
-### Multi-Tenancy (§5.2)
+1. **Throughput (Tokens/sec or Steps/sec)**: The primary measure of end-to-end model performance.
+2. **Weak Scaling**: Performance as both hardware and model size increase proportionally.
+3. **Strong Scaling**: Performance as hardware increases for a fixed model size.
+4. **Dispatch Latency**: The time from client command to kernel execution on the accelerator.
+5. **Context-Switch Overhead**: The performance penalty for switching between different users' computations in a multi-tenant environment.
 
-- **Zero context-switch overhead** when multiplexing concurrent programs (resources fit in HBM).
-- Pathways **exceeds** JAX's maximum throughput for very small computations.
-- Gang-scheduling interleaves programs at **millisecond scale** or less.
+## Pathways Performance Benchmarks
 
-### Large-Scale Model Training (§5.3)
+- **SPMD Scaling**: Pathways matches multi-controller JAX performance for SPMD training on 2048 TPU cores (see §5.1).
+- **Small-Scale Throughput**: For extremely small computations (0.33 ms), Pathways *exceeds* JAX throughput because its asynchronous design allows it to hide host-side overhead better than JAX can locally via Python.
+- **Pipeline Parallelism**: Achieves near-equal throughput to an SPMD configuration (128 cores, 3B decoder model) with 2-16 pipeline stages.
+- **Multi-Island Efficiency**: Training across two islands connected by DCN retains **97.2%** of the throughput of a single ICI-connected island of the same size.
+- **Multi-Tenancy**: With 16 concurrent clients, Pathways achieves ~100% device utilization even if individual programs are too small to saturate the hardware.
 
-| Model | Params | TPU Cores | JAX Throughput | Pathways Throughput |
-|-------|--------|-----------|----------------|---------------------|
-| T5-Base | 270M | 32 | 618k tok/s | 618k tok/s |
-| T5-Large | 770M | 32 | 90.4k tok/s | 90.4k tok/s |
-| T5-3B | 3B | 512 | 282.8k tok/s | 282.8k tok/s |
-| T5-11B | 11B | 512 | 84.8k tok/s | 84.8k tok/s |
+## Why Pathways Metrics Matter
 
-### Pipeline Parallel Performance
-
-| Configuration | TPU Cores | Throughput |
-|---------------|-----------|------------|
-| SPMD | 128 | 125.7k tok/s |
-| Pipeline, S=4, M=16 | 128 | 133.7k tok/s |
-| Pipeline, S=8, M=32 | 128 | 132.7k tok/s |
-| Pipeline, S=16, M=64 | 128 | 131.4k tok/s |
-| Pipeline, S=16, M=64 | 512 | 507.8k tok/s |
-
-### Multi-Island Training
-
-- 64B and 136B parameter models trained across **two islands** of accelerators.
-- Achieves **~97%** throughput compared to a single island with equivalent total devices.
-- DCN transfers incur **minimal overhead** even at 128 hosts per island.
-
-## Hardware Considerations (Appendix A)
-
-### Batching (A.1)
-- Unlocks parallelism and memory re-use but pressures limited HBM capacity.
-- Very large batch sizes can slow model convergence.
-
-### Asynchronous Programming (A.2)
-- Accelerators use async APIs to mask dispatch latency.
-- Synchronous abstractions waste too many cycles between PCIe latency and kernel scheduling.
-
-### Interconnects (A.3)
-- **GPU**: NVLink (intra-host) + InfiniBand/RDMA (inter-host).
-- **TPU**: Custom mesh network (ICI) built into chips; direct chip-to-chip without host involvement.
-
-### Single-Tenancy (A.4)
-- Accelerators not traditionally shared between programs.
-- Fine-grained context-switching is expensive due to HBM-to-DRAM paging over PCIe.
-- Stranded resources when a program doesn't fully utilize its devices.
+Historically, single-controller systems suffered from "hundreds of microseconds" or even "milliseconds" of dispatch latency over DCN. Pathways evaluates whether its **asynchronous dispatch** and **centralized scheduling** successfully move these delays off the critical path.
 
 ## Paper Reference
 
-> "We demonstrate that PATHWAYS can achieve performance parity (~100% accelerator utilization) with state-of-the-art systems when running SPMD computations over 2048 TPUs." — Abstract
+> "PATHWAYS scales to 2048 TPU cores with ~100% performance relative to an SPMD system like JAX." — §5.1

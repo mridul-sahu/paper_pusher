@@ -1,4 +1,4 @@
-# PLAQUE Coordination Substrate
+# PLAQUE Coordination
 
 ---
 id: plaque-coordination
@@ -8,47 +8,33 @@ tags:
   - coordination
   - dataflow
   - infrastructure
-  - DCN
 related:
   - sharded_dataflow_graph
   - asynchronous_distributed_dataflow
-  - gang_scheduling
 ---
 
 ## Definition
 
-**PLAQUE** is a closed-source, production sharded dataflow system used at Google for many customer-facing services. Pathways uses PLAQUE as its **coordination substrate** for all cross-host communication over DCN.
+**PLAQUE** is a high-performance, sharded dataflow system developed at Google. Pathways uses it as the low-level substrate for managing all distributed coordination and communication between hosts.
+
+## Core Features Used by Pathways
+
+1. **Compact Dataflow Graph**: PLAQUE supports "sharded nodes," enabling a representation where a single node represents a computation on thousands of accelerators.
+2. **Sparse Data-Plane Exchanges**: Efficiently routes messages between specific shards (e.g., in MoE models where results go to specific expert hosts).
+3. **Dynamic Routing**: Supports sparse messages sent between subsets of shards chosen at runtime.
+4. **Low-Latency Signaling**: Optimized for sending small, critical coordination messages (like futures or health checks) with very low latency.
+5. **Progress Tracking**: PLAQUE uses standard progress tracking mechanisms to detect when all messages for a shard have been received, enabling efficient sparse communication.
 
 ## Role in Pathways
 
-The low-level Pathways IR is converted **directly** into a PLAQUE program (a dataflow graph). PLAQUE then handles:
-- Sending scheduling messages and data handles between hosts.
-- Routing shard-tagged data tuples between computation nodes.
-- Background housekeeping: configuration distribution, monitoring, cleanup, error delivery.
+- When a researcher writes a program, it is lowered into a Pathways IR (Intermediate Representation).
+- This IR is then converted directly into a **PLAQUE program**.
+- PLAQUE handles the actual "running" of this program across the cluster: it manages message queues, host health, and data delivery.
+- Background tasks (like distributing configuration or aggregating monitoring data) also run as PLAQUE sub-graphs.
 
-## Requirements (All Met by PLAQUE)
+## Why Not Vanilla TensorFlow?
 
-| Requirement | Description |
-|-------------|-------------|
-| **Compact sharded representation** | A single node per sharded computation, regardless of shard count |
-| **Sparse data exchanges** | Messages between dynamically chosen subsets of shards |
-| **Low-latency critical messages** | Scheduling messages on the critical path must have minimal delay |
-| **High-throughput batching** | Messages destined for the same host are batched efficiently |
-| **Extensibility** | General-purpose dataflow engine reused for housekeeping tasks |
-
-## Could PLAQUE Be Replaced?
-
-The paper suggests that the Pathways design could be re-implemented using other distributed frameworks:
-
-> "We believe that it would be feasible to re-implement the full PATHWAYS design using other distributed frameworks such as **Ray** rather than PLAQUE."
-
-However, some additions to Ray would be needed:
-- An **HBM object store** (Ray lacks this).
-- Primitives to efficiently **transfer remote objects over the GPU interconnect**.
-
-## Progress Tracking
-
-PLAQUE uses standard progress tracking mechanisms (from Akidau et al., 2013; Murray et al., 2013) to detect when all messages for a shard have been received, enabling efficient sparse communication.
+Pathways moved away from the vanilla TensorFlow runtime for coordination because TF v1 materialized explicit edges between all shards ($M \times N$), which crashed at the scale of thousands of devices. PLAQUE's sharded dataflow model solves this.
 
 ## Paper Reference
 

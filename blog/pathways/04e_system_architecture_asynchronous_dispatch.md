@@ -1,6 +1,6 @@
 # Part 4e: System Architecture — Asynchronous Dispatch
 
-> *"Almost all of today's high performance ML computations are expressed as long stretches of compiled functions and only occasionally (if ever) branch based on data that is computed by a compiled function."*
+> "The dispatch of a computation to a virtual device set is non-blocking..."
 > — Appendix B, Pathways paper
 
 ---

@@ -1,17 +1,17 @@
 # Part 6: Related Work & Future Directions
 
-> *"Our ambition is that Pathways will be to TPU pods as an operating system is to a general-purpose computer."*
+> "PATHWAYS will be to TPU pods as an operating system is to a general-purpose computer."
 > — §7, Pathways paper
 
 ---
 
-## Related Work: Standing on the Shoulders of Systems
+## Related Work: Standing on the Shoulders of Giants
 
-Pathways doesn't exist in a vacuum. It synthesizes decades of ideas from **distributed systems**, **HPC**, **dataflow engines**, and **ML frameworks**. Understanding the related work contextualizes *what* is truly novel about Pathways and *why* existing systems were insufficient.
+Pathways doesn't exist in a vacuum. It is the culmination of a decade of distributed systems and machine learning research. The paper categorizes its predecessors into four groups:
 
-### ML Frameworks: The First Generation
+### ML Execution Engines
 
-**TensorFlow (Abadi et al., 2016)** pioneered the concept of a distributed dataflow graph for ML. Its `tf.Session.run()` API was essentially a single-controller model — the user builds a graph, sends it to a distributed runtime, and gets results back. But TF v1 suffered from the three problems Pathways solves: high dispatch latency, no gang-scheduling, and O(N²) graph explosion.
+**TensorFlow v1 (Abadi et al., 2016)** pioneered the single-controller dataflow model. As discussed in [Part 2](02_design_motivation.md), TF v1 suffered from dispatch latency and graph scalability issues that Pathways explicitly solves.
 
 **PyTorch (Paszke et al., 2019)** took the opposite approach with eager execution — the user's Python code directly dispatches operations to local accelerators. This is effectively a multi-controller model (on a single host). PyTorch DDP (Distributed Data Parallel) extends this to multiple hosts, but retains the SPMD-only limitation.
 

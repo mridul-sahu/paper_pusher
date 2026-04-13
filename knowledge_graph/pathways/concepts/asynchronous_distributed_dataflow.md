@@ -8,37 +8,36 @@ tags:
   - architecture
   - dataflow
   - execution-model
-  - asynchronous
 related:
-  - sharded_dataflow_graph
   - parallel_asynchronous_dispatch
+  - sharded_dataflow_graph
   - plaque_coordination
 ---
 
 ## Definition
 
-Asynchronous distributed dataflow is the execution model at the core of Pathways. Programs are expressed as **directed acyclic graphs (DAGs)** of operators that **consume and produce futures**—opaque handles to values that will be computed in the future. This allows the control plane to proceed with scheduling and resource allocation before data-plane values are available.
+**Asynchronous Distributed Dataflow** is an execution model where computations are represented as a directed acyclic graph (DAG) of operators that consume and produce **futures** (or promises). Execution is triggered as soon as input futures are resolved, allowing the system to overlap computation, communication, and coordination.
 
-## How It Works in Pathways
+## Key Characteristics
 
-1. **Futures as edges**: Each edge in the dataflow graph carries a future. Nodes do not block waiting for predecessors to complete before the system begins scheduling successor nodes.
-2. **Decoupled control and data planes**: The control plane (scheduling, resource allocation, coordination) executes **in parallel** across nodes, even when the data plane has true dependencies. This is possible because resource requirements of compiled functions are **statically known**.
-3. **Sharded representation**: The dataflow graph uses a compact sharded representation where a single node represents a computation across N shards, avoiding the M×N edge explosion of naively materialized graphs.
+1. **Fire-and-forget dispatch**: The client enqueues multiple nodes of a computation graph without waiting for their results.
+2. **Buffer futures**: Intermediate data remains on accelerators; hosts only exchange small "future" objects representing that data until the final result is needed.
+3. **Pipelining**: Different parts of the graph run as soon as their specific dependencies are met.
+4. **Dynamic routing**: Data can be sent to different downstream nodes based on runtime conditions (e.g., MoE experts).
 
-## Contrast with Prior Systems
+## Pathways Implementation
 
-| System | Model | Limitation |
-|--------|-------|------------|
-| **TF v1** | Distributed dataflow, but sequential coordination | Cross-host dispatch latency accumulates for pipelines |
-| **JAX/PyTorch** | Multi-controller, SPMD-only | No centralized coordination; data movement limited to collectives |
-| **Pathways** | Async distributed dataflow with parallel dispatch | Control and data planes decoupled; scales to thousands of shards |
+Pathways implements this model using:
+- **MLIR-based IR**: A custom dialect for expressing sharded computations.
+- **PLAQUE**: The low-level substrate that manages the distributed execution of the dataflow graph.
+- **Asynchronous RPCs**: Communication between the controller and workers uses an asynchronous messaging protocol.
 
-## Key Properties
+## Advantages
 
-- **Non-blocking scheduling**: Successor computations can have resources allocated and be partially prepared before predecessors finish.
-- **Efficient pipelining**: Enables pipeline-parallel execution across many stages without accumulated dispatch latency.
-- **Sparse data exchanges**: Supports dynamically chosen subsets of shard-to-shard communication.
+- **Latent masking**: Overlaps the time spent sending commands over DCN with the time the accelerator spends executing previous kernels.
+- **Host-compute overlap**: Allows the Python client to continue preparing future work while previous work is still enqueued or running.
+- **Resource flexibility**: Since nodes are loosely coupled by futures, the system can choose where and when to run them more dynamically than a bulk-synchronous system.
 
 ## Paper Reference
 
-> "PATHWAYS uses a sharded dataflow graph of asynchronous operators that consume and produce futures, and efficiently gang-schedules heterogeneous parallel computations on thousands of accelerators." — Abstract
+> "PATHWAYS uses a sharded dataflow graph of asynchronous operators that consume and produce futures." — §1

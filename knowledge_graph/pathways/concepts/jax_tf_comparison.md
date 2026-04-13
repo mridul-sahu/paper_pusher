@@ -3,77 +3,43 @@
 ---
 id: jax-tf-comparison
 paper: pathways-2022
-section: "§2 (Design Motivation), §3 (Programming Model), §6 (Discussion)"
+section: "§2 (Design Motivation), §3 (Programming Model), §6 (Related Work)"
 tags:
   - frameworks
   - comparison
   - programming-model
-  - JAX
-  - TensorFlow
-  - PyTorch
-  - Ray
 related:
   - single_controller_model
   - spmd_vs_mpmd
-  - accelerator_utilization_metrics
+  - sharded_dataflow_graph
 ---
 
-## Systems Compared
+## Overview
 
-### Multi-Controller Systems
+Pathways is designed to bridge the gap between the performance of **JAX** (multi-controller) and the flexibility of **TensorFlow** (single-controller).
 
-| System | Architecture | Dispatch | Communication |
-|--------|-------------|----------|---------------|
-| **JAX** | Multi-controller | Local PCIe (low latency) | XLA collectives over ICI |
-| **PyTorch** | Multi-controller | Local PCIe (low latency) | NCCL collectives |
-| **MPI** | Multi-controller | Local PCIe (low latency) | MPI collectives |
+## Comparison Table
 
-**Advantages**: Very low dispatch latency (communication only over fast PCIe links).
+| Feature | JAX (Multi-Controller) | TF v1 (Single-Controller) | Pathways (Single-Controller) |
+|---------|------------------------|---------------------------|------------------------------|
+| **Control Plane** | Distributed (Every host runs Python) | Centralized (Coordinator) | Centralized (Coordinator) |
+| **Flexibility** | Limited to SPMD | High (Arbitrary graphs) | High (Arbitrary graphs + SPMD) |
+| **Dispatch Latency** | Low (local PCIe) | High (DCN round-trips) | Low (masked by Async Dispatch) |
+| **Coordination** | User-managed collectives | Graph-based dataflow | Sharded Dataflow (PLAQUE) |
+| **Graph Scaling** | Individual host graphs | $M \times N$ sharded edges | Compact sharded nodes |
+| **Resource Mgmt** | User-defined / Static | System-managed / Dynamic | System-managed / Virtualized |
 
-**Limitations**:
-- Poor match for pipelining, MoE, and computational sparsity.
-- Non-collective communication requires user-implemented coordination.
-- Assumes exclusive hardware ownership; no multi-tenancy.
-- JAX cannot scale beyond a single TPU pod (collectives limited to ICI).
+## Why Pathways is Better for Researchers
 
-### Single-Controller Systems
+1. **MPMD Support**: Researchers trying to implement mixture-of-experts or pipelining in JAX must write complex distributed coordination. In Pathways, it's a natural part of the dataflow model.
+2. **Resource Sharing**: In JAX, one job usually owns the whole TPU Pod. In Pathways, researchers can share the Pod for fine-tuning or small-scale experiments without reconfiguring hardware.
+3. **Debugging and Inspection**: A single-controller model provides a centralized view of the entire computation, making it easier to monitor and debug distributed executions.
 
-| System | Architecture | Dispatch | Communication |
-|--------|-------------|----------|---------------|
-| **TF v1** | Single-controller | Over DCN (high latency) | Send/recv ops over DCN |
-| **Pathways** | Single-controller | Over DCN but **async parallel** | PLAQUE dataflow + ICI/DCN |
+## Performance vs JAX
 
-**TF v1 Limitations**:
-- Dispatch latencies accumulate for pipelined models with many stages.
-- Over-specialized for single, small, exclusively-owned islands.
-- Materializes full sharded computation graph → millions of edges at scale.
-- No centralized scheduler → cannot ensure consistent ordering across programs.
-
-### Pathways vs JAX Performance
-
-- **Identical throughput** for all realistic computation sizes across all tested models (T5-Base through T5-11B).
-- Pathways **exceeds** JAX throughput for very small computations in multi-tenant scenarios.
-- Pathways can scale JAX programs to **multiple TPU pods** (JAX is limited to one).
-
-### Pathways vs TF v1
-
-- Pathways uses **sharded** dataflow (compact) vs TF's **materialized** graph (M×N edges).
-- Pathways has **parallel async dispatch** vs TF's **sequential** host-side work.
-- Pathways has a **centralized gang scheduler** vs TF's **control-edge barriers**.
-
-### Pathways vs Ray
-
-- Both are single-controller, but Ray is general-purpose.
-- Ray lacks an **HBM object store** and efficient GPU interconnect transfer primitives.
-- Ray shows ~10x worse per-computation performance, but could potentially match with engineering (fast paths, on-GPU object stores).
-
-## Pathways-JAX Integration
-
-- Pathways serves as a **plug-in replacement** for the JAX backend.
-- Unmodified JAX code runs on Pathways; SPMD computations gain access to all provisioned cores, not just locally connected ones.
-- Pathways enables JAX programs to scale to **multiple TPU pods** for the first time.
-- Optional `@pw.program` tracer generates multi-node dataflow programs from Python blocks.
+- **Throughput Parity**: For large language model training (e.g., T5-11B on 512 cores), Pathways achieves **identically matching throughput** to JAX.
+- **Latency Masking**: Pathways' asynchronous dispatch effectively cancels out the DCN latency inherent in the single-controller model.
 
 ## Paper Reference
 
-> "PATHWAYS combines the flexibility of single-controller frameworks with the performance of multi-controllers." — §2
+> "PATHWAYS combines the flexibility of single-controller frameworks like TensorFlow with the performance of multi-controller frameworks like JAX." — §2

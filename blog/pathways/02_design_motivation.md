@@ -1,6 +1,6 @@
-# Part 2: Design Motivation — The Multi-Controller vs. Single-Controller Dilemma
+# Part 2: Design Motivation — The Fast vs. Flexible Tradeoff
 
-> *"Pathways combines the flexibility of single-controller frameworks with the performance of multi-controllers."*
+> "A single-controller architecture... provides a very general distributed dataflow model... however, implementation challenges have historically resulted in poor performance at scale."
 > — §2, Pathways paper
 
 ---

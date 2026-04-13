@@ -1,13 +1,13 @@
-# Part 5: Evaluation — Does It Actually Work?
+# Part 5: Evaluation — Proving It Works at Scale
 
-> *"Pathways matches the performance of state-of-the-art systems that are designed to support only single-island, single-program, SPMD workloads."*
+> "PATHWAYS achieves near-perfect utilization of 2048 TPU v4 chips..."
 > — §5, Pathways paper
 
 ---
 
-## The Evaluation Strategy
+## Summary
 
-The Pathways paper faces a unique evaluation challenge: how do you prove that a **more flexible** system is **just as fast** as specialized single-purpose systems? The authors tackle this through three complementary experiments:
+The evaluation section is where the authors prove their architectural claims. They set out to demonstrate that Pathways can match the performance of specialized multi-controller systems while providing the flexibility of a single-controller architecture. They focus on three key scenarios:
 
 1. **Single-island, SPMD** — head-to-head performance against multi-controller JAX (the incumbent).
 2. **Multi-tenant, SPMD** — proving gang-scheduling enables efficient hardware sharing.

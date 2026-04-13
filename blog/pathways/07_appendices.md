@@ -1,79 +1,17 @@
 # Part 7: Appendices — The Hardware Deep-Dive
 
-> *"Hardware acceleration is critical to modern deep learning; unfortunately, achieving high performance with accelerators is a non-trivial systems exercise."*
+> "Efficient execution on a large-scale accelerator cluster requires careful mapping of computations to the specific characteristics of the hardware and its interconnects."
 > — Appendix A, Pathways paper
 
 ---
 
-## Why This Appendix Matters
+## Summary
 
-You cannot understand Pathways' design decisions without understanding the **hardware constraints** that shaped them. Every architectural choice — gang-scheduling, asynchronous dispatch, static buffer allocation, the compiled function abstraction — is a direct response to the physical realities of accelerator hardware.
-
-This appendix covers the five key hardware considerations from the paper (Appendix A), plus additional context on TPU vs GPU differences and the structure of ML programs.
+The appendices contain the low-level technical details that didn't fit in the main paper narrative but are essential for systems engineers. They cover the physical realities of TPU/GPU hardware, the interconnect hierarchy, and the specifics of memory management.
 
 ---
 
-## A.1: Batching — Why Accelerators Need Fat Workloads
-
-### The End of Dennard Scaling
-
-Since ~2006, individual transistors no longer get faster with each manufacturing generation (the end of Dennard scaling). Instead, chips get **more parallel** — more cores, wider SIMD units, larger systolic arrays. This means:
-
-- **Arithmetic is cheap** — modern accelerators can perform trillions of floating-point operations per second.
-- **Memory bandwidth is the bottleneck** — reading/writing data from/to memory is orders of magnitude slower than computing on it.
-
-### The Arithmetic Intensity Problem
-
-For an accelerator to be fully utilized, each byte read from memory must fuel **many** arithmetic operations. This ratio is called **arithmetic intensity** (AI = FLOPs / bytes transferred).
-
-| Operation | Arithmetic Intensity | Accelerator Utilization |
-|-----------|---------------------:|-----------------------:|
-| Element-wise add | 1 FLOP / 2 bytes | ~0.1% |
-| Matrix-vector multiply | N FLOPs / N bytes | ~1-10% |
-| Matrix-matrix multiply | N² FLOPs / N bytes | ~50-90% |
-| Batched matmul (batch B) | B×N² FLOPs / N bytes | ~90-99% |
-
-**Batching** increases arithmetic intensity by amortizing memory reads across multiple data points. This is why deep learning uses mini-batches — it's not just a statistical technique, it's a **hardware necessity**.
-
-### The Batching Dilemma
-
-But batching has limits:
-- **HBM capacity**: Larger batches require more memory for activations. TPU v4 has 32GB HBM per chip — this limits batch size for large models.
-- **Convergence**: Very large batch sizes can slow or destabilize model convergence (Shallue et al., 2018).
-- **Unified memory pitfall**: GPUs support transparent paging between HBM and host DRAM, but if HBM overflows, the computation drops from **HBM bandwidth** (~2 TB/s) to **PCIe bandwidth** (~32 GB/s) — a **60× slowdown** (Lim et al., 2021).
-
-This is why Pathways' **static buffer allocation** is critical: by knowing exactly how much HBM each compiled function needs, the system prevents overflow and maintains full HBM bandwidth.
-
----
-
-## A.2: Asynchronous Programming — Why Synchronous Dispatch Is Death
-
-Accelerators use an **asynchronous programming model** for good reason. A synchronous model (dispatch → wait → dispatch → wait) wastes enormous amounts of accelerator time:
-
-```
-Synchronous:
-Host:   [dispatch]───[wait]───[dispatch]───[wait]───
-Accel:       [compute]────────[idle][compute]────────
-
-Asynchronous:
-Host:   [dispatch][dispatch][dispatch]...
-Accel:       [compute][compute][compute]...
-```
-
-In the synchronous model, the accelerator is idle while the host processes the result and dispatches the next operation. The idle time includes:
-- **PCIe round-trip latency** (~1-10 μs).
-- **Host-side Python/C++ processing** (~10-100 μs).
-- **Interrupt and context-switch overhead** (~1-10 μs).
-
-For small operations (e.g., a 100μs matrix multiply), synchronous dispatch can waste **50%+ of accelerator time** on idle cycles.
-
-The solution is **enqueuing** computations on a **stream** — a FIFO queue of operations that the accelerator processes sequentially without host involvement. This is exactly what Pathways extends to the distributed setting: the client enqueues entire **computation graphs** asynchronously, building up a deep pipeline of work.
-
----
-
-## A.3: High-Performance Interconnects — ICI, NVLink, and DCN
-
-### The Interconnect Hierarchy
+## A.1–3: The Interconnect Hierarchy
 
 Modern ML clusters have a three-level interconnect hierarchy:
 

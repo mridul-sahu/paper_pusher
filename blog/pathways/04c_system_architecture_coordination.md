@@ -1,20 +1,13 @@
-# Part 4c: System Architecture — Plaque: The Distributed Coordination Layer
+# Part 4c: System Architecture — Coordination with Plaque
 
-> *"Plaque is a sharded dataflow system of asynchronous operators that consume and produce futures."*
+> "PATHWAYS relies on PLAQUE for all cross-host coordination that uses DCN. PLAQUE is an existing (closed-source) production sharded dataflow system used at Google."
 > — §4.3, Pathways paper
 
 ---
 
-## The Coordination Problem
+## Summary
 
-Consider the challenge: a single client has dispatched a computation graph to the Pathways runtime. The graph specifies that `function_A` runs on 512 TPUs in Island 1, `function_B` runs on 512 TPUs in Island 2, and there's a data transfer between them. How does the system ensure that:
-
-1. All 512 TPUs in Island 1 start `function_A` at the **same time** (gang-scheduling)?
-2. The data transfer is **initiated** only after `function_A` completes?
-3. All 512 TPUs in Island 2 start `function_B` at the **same time**, and only after the transfer arrives?
-4. All of this happens with **microsecond overhead**, not the milliseconds that naive RPC coordination would introduce?
-
-This is the problem **Plaque** solves.
+Distributed execution isn't just about running kernels; it's about **moving data** and **staying in sync**. This part of the paper details the low-level coordination substrate called **Plaque**. It explains how Pathways avoids the "M x N" edge explosion that killed previous single-controller systems (like TF v1) and how it achieves efficient data flow across the datacenter network.
 
 ---
 
