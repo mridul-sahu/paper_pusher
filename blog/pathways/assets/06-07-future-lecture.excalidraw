@@ -1,0 +1,371 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "type": "text", "id": "title", "x": 80, "y": 30,
+      "width": 800, "height": 35,
+      "text": "§6-7  Related Work & The Road Ahead",
+      "originalText": "§6-7  Related Work & The Road Ahead",
+      "fontSize": 28, "fontFamily": 3, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#1e40af", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60001, "version": 1, "versionNonce": 60002,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+    {
+      "type": "line", "id": "title_div", "x": 80, "y": 72,
+      "width": 1200, "height": 0,
+      "strokeColor": "#1e3a5f", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60003, "version": 1, "versionNonce": 60004,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [1200, 0]]
+    },
+
+    {
+      "type": "text", "id": "landscape_title", "x": 80, "y": 90,
+      "width": 500, "height": 25,
+      "text": "Where Pathways Sits in the Landscape",
+      "originalText": "Where Pathways Sits in the Landscape",
+      "fontSize": 20, "fontFamily": 3, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#047857", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60010, "version": 1, "versionNonce": 60011,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "line", "id": "y_axis", "x": 150, "y": 135, "width": 0, "height": 220,
+      "strokeColor": "#64748b", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60020, "version": 1, "versionNonce": 60021,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [0, 220]]
+    },
+    {
+      "type": "line", "id": "x_axis", "x": 150, "y": 355, "width": 700, "height": 0,
+      "strokeColor": "#64748b", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60022, "version": 1, "versionNonce": 60023,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [700, 0]]
+    },
+    {
+      "type": "text", "id": "y_label", "x": 80, "y": 230,
+      "width": 60, "height": 18,
+      "text": "Multi-\nTenant ↑",
+      "originalText": "Multi-\nTenant ↑",
+      "fontSize": 11, "fontFamily": 3, "textAlign": "right", "verticalAlign": "top",
+      "strokeColor": "#64748b", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60024, "version": 1, "versionNonce": 60025,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+    {
+      "type": "text", "id": "x_label", "x": 450, "y": 365,
+      "width": 100, "height": 18,
+      "text": "Multi-Controller →",
+      "originalText": "Multi-Controller →",
+      "fontSize": 11, "fontFamily": 3, "textAlign": "center", "verticalAlign": "top",
+      "strokeColor": "#64748b", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60026, "version": 1, "versionNonce": 60027,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "ellipse", "id": "dot_tf", "x": 200, "y": 300, "width": 80, "height": 30,
+      "strokeColor": "#dc2626", "backgroundColor": "#fecaca",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60030, "version": 1, "versionNonce": 60031,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": [{"id": "dot_tf_t", "type": "text"}], "link": null, "locked": false
+    },
+    {
+      "type": "text", "id": "dot_tf_t", "x": 210, "y": 307,
+      "width": 60, "height": 15,
+      "text": "TF/JAX",
+      "originalText": "TF/JAX",
+      "fontSize": 10, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#dc2626", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60032, "version": 1, "versionNonce": 60033,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "dot_tf", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "ellipse", "id": "dot_ray", "x": 380, "y": 195, "width": 80, "height": 30,
+      "strokeColor": "#b45309", "backgroundColor": "#fef3c7",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60040, "version": 1, "versionNonce": 60041,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": [{"id": "dot_ray_t", "type": "text"}], "link": null, "locked": false
+    },
+    {
+      "type": "text", "id": "dot_ray_t", "x": 390, "y": 202,
+      "width": 60, "height": 15,
+      "text": "Ray",
+      "originalText": "Ray",
+      "fontSize": 10, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#b45309", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60042, "version": 1, "versionNonce": 60043,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "dot_ray", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "ellipse", "id": "dot_k8s", "x": 530, "y": 240, "width": 100, "height": 30,
+      "strokeColor": "#6d28d9", "backgroundColor": "#ddd6fe",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60050, "version": 1, "versionNonce": 60051,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": [{"id": "dot_k8s_t", "type": "text"}], "link": null, "locked": false
+    },
+    {
+      "type": "text", "id": "dot_k8s_t", "x": 540, "y": 247,
+      "width": 80, "height": 15,
+      "text": "Kubernetes",
+      "originalText": "Kubernetes",
+      "fontSize": 10, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#6d28d9", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60052, "version": 1, "versionNonce": 60053,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "dot_k8s", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "ellipse", "id": "dot_pw", "x": 620, "y": 150, "width": 120, "height": 40,
+      "strokeColor": "#047857", "backgroundColor": "#10b981",
+      "fillStyle": "solid", "strokeWidth": 3, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60060, "version": 1, "versionNonce": 60061,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": [{"id": "dot_pw_t", "type": "text"}], "link": null, "locked": false
+    },
+    {
+      "type": "text", "id": "dot_pw_t", "x": 630, "y": 162,
+      "width": 100, "height": 15,
+      "text": "Pathways ★",
+      "originalText": "Pathways ★",
+      "fontSize": 11, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#ffffff", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60062, "version": 1, "versionNonce": 60063,
+      "isDeleted": false, "groupIds": ["landscape"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "dot_pw", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "text", "id": "pw_callout", "x": 750, "y": 150,
+      "width": 250, "height": 50,
+      "text": "Only system that is both\nmulti-controller AND\nmulti-tenant with MPMD.",
+      "originalText": "Only system that is both\nmulti-controller AND\nmulti-tenant with MPMD.",
+      "fontSize": 12, "fontFamily": 3, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#047857", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60064, "version": 1, "versionNonce": 60065,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "line", "id": "div1", "x": 80, "y": 400,
+      "width": 1200, "height": 0,
+      "strokeColor": "#64748b", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "dashed", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60070, "version": 1, "versionNonce": 60071,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [1200, 0]]
+    },
+
+    {
+      "type": "text", "id": "future_title", "x": 80, "y": 420,
+      "width": 500, "height": 25,
+      "text": "The Road Ahead: What Pathways Enables",
+      "originalText": "The Road Ahead: What Pathways Enables",
+      "fontSize": 20, "fontFamily": 3, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#6d28d9", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60080, "version": 1, "versionNonce": 60081,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "rectangle", "id": "today_box", "x": 100, "y": 460, "width": 200, "height": 60,
+      "strokeColor": "#1e40af", "backgroundColor": "#dbeafe",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60090, "version": 1, "versionNonce": 60091,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": [{"id": "today_t", "type": "text"}], "link": null, "locked": false,
+      "roundness": {"type": 3}
+    },
+    {
+      "type": "text", "id": "today_t", "x": 110, "y": 470,
+      "width": 180, "height": 40,
+      "text": "Today: LLM Training\nSingle-program, TPU-only",
+      "originalText": "Today: LLM Training\nSingle-program, TPU-only",
+      "fontSize": 12, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#1e40af", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60092, "version": 1, "versionNonce": 60093,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "today_box", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "arrow", "id": "to_f1", "x": 305, "y": 475, "width": 100, "height": -25,
+      "strokeColor": "#6d28d9", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60100, "version": 1, "versionNonce": 60101,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [100, -25]],
+      "startBinding": null, "endBinding": null,
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+    {
+      "type": "arrow", "id": "to_f2", "x": 305, "y": 490, "width": 100, "height": 0,
+      "strokeColor": "#6d28d9", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60102, "version": 1, "versionNonce": 60103,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [100, 0]],
+      "startBinding": null, "endBinding": null,
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+    {
+      "type": "arrow", "id": "to_f3", "x": 305, "y": 505, "width": 100, "height": 25,
+      "strokeColor": "#6d28d9", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60104, "version": 1, "versionNonce": 60105,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [100, 25]],
+      "startBinding": null, "endBinding": null,
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+
+    {
+      "type": "rectangle", "id": "f1_box", "x": 420, "y": 440, "width": 260, "height": 35,
+      "strokeColor": "#047857", "backgroundColor": "#a7f3d0",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60110, "version": 1, "versionNonce": 60111,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": [{"id": "f1_t", "type": "text"}], "link": null, "locked": false,
+      "roundness": {"type": 3}
+    },
+    {
+      "type": "text", "id": "f1_t", "x": 430, "y": 449,
+      "width": 240, "height": 15,
+      "text": "Multi-modal: Vision + Text + Audio",
+      "originalText": "Multi-modal: Vision + Text + Audio",
+      "fontSize": 12, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#047857", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60112, "version": 1, "versionNonce": 60113,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "f1_box", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "rectangle", "id": "f2_box", "x": 420, "y": 482, "width": 260, "height": 35,
+      "strokeColor": "#b45309", "backgroundColor": "#fef3c7",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60120, "version": 1, "versionNonce": 60121,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": [{"id": "f2_t", "type": "text"}], "link": null, "locked": false,
+      "roundness": {"type": 3}
+    },
+    {
+      "type": "text", "id": "f2_t", "x": 430, "y": 491,
+      "width": 240, "height": 15,
+      "text": "Heterogeneous: TPU + GPU + CPU",
+      "originalText": "Heterogeneous: TPU + GPU + CPU",
+      "fontSize": 12, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#b45309", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60122, "version": 1, "versionNonce": 60123,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "f2_box", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "rectangle", "id": "f3_box", "x": 420, "y": 524, "width": 260, "height": 35,
+      "strokeColor": "#6d28d9", "backgroundColor": "#ddd6fe",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60130, "version": 1, "versionNonce": 60131,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": [{"id": "f3_t", "type": "text"}], "link": null, "locked": false,
+      "roundness": {"type": 3}
+    },
+    {
+      "type": "text", "id": "f3_t", "x": 430, "y": 533,
+      "width": 240, "height": 15,
+      "text": "Dynamic composition at runtime",
+      "originalText": "Dynamic composition at runtime",
+      "fontSize": 12, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#6d28d9", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60132, "version": 1, "versionNonce": 60133,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "containerId": "f3_box", "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "arrow", "id": "f_to_vision", "x": 685, "y": 460, "width": 100, "height": 0,
+      "strokeColor": "#047857", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "dashed", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60140, "version": 1, "versionNonce": 60141,
+      "isDeleted": false, "groupIds": ["future"], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [100, 0]],
+      "startBinding": null, "endBinding": null,
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+    {
+      "type": "text", "id": "vision_note", "x": 795, "y": 445,
+      "width": 220, "height": 35,
+      "text": "e.g., Gemini: one model,\nmultiple modalities, one runtime",
+      "originalText": "e.g., Gemini: one model,\nmultiple modalities, one runtime",
+      "fontSize": 12, "fontFamily": 3, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#047857", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60142, "version": 1, "versionNonce": 60143,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "containerId": null, "autoResize": true, "lineHeight": 1.25
+    },
+
+    {
+      "type": "line", "id": "div2", "x": 80, "y": 585,
+      "width": 1200, "height": 0,
+      "strokeColor": "#64748b", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "dashed", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60150, "version": 1, "versionNonce": 60151,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "points": [[0, 0], [1200, 0]]
+    },
+
+    {
+      "type": "rectangle", "id": "takeaway_box", "x": 80, "y": 605, "width": 920, "height": 60,
+      "strokeColor": "#047857", "backgroundColor": "#a7f3d0",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60160, "version": 1, "versionNonce": 60161,
+      "isDeleted": false, "groupIds": [], "boundElements": [{"id": "takeaway_t", "type": "text"}], "link": null, "locked": false,
+      "roundness": {"type": 3}
+    },
+    {
+      "type": "text", "id": "takeaway_t", "x": 90, "y": 615,
+      "width": 900, "height": 40,
+      "text": "Pathways is the missing OS layer between ML frameworks and accelerator hardware.\nIt turns a datacenter full of TPUs into a single, programmable, multi-tenant supercomputer.",
+      "originalText": "Pathways is the missing OS layer between ML frameworks and accelerator hardware.\nIt turns a datacenter full of TPUs into a single, programmable, multi-tenant supercomputer.",
+      "fontSize": 14, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle",
+      "strokeColor": "#047857", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
+      "opacity": 100, "angle": 0, "seed": 60162, "version": 1, "versionNonce": 60163,
+      "isDeleted": false, "groupIds": [], "boundElements": null, "link": null, "locked": false,
+      "containerId": "takeaway_box", "autoResize": true, "lineHeight": 1.25
+    }
+  ],
+  "appState": {
+    "gridSize": null, "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

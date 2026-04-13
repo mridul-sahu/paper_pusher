@@ -1,0 +1,235 @@
+@prefix pw:    <http://knowledge-graph.local/pathways/> .
+@prefix pwc:   <http://knowledge-graph.local/pathways/concept/> .
+@prefix kg:    <http://knowledge-graph.local/ontology/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================
+# Ontology: Custom predicates for knowledge graph relationships
+# ============================================================
+
+kg:hasComponent     rdf:type rdf:Property ;
+                    rdfs:label "has component" ;
+                    rdfs:comment "Subject system contains object as an architectural component." .
+
+kg:enables          rdf:type rdf:Property ;
+                    rdfs:label "enables" ;
+                    rdfs:comment "Subject concept enables or makes possible the object concept." .
+
+kg:solves           rdf:type rdf:Property ;
+                    rdfs:label "solves" ;
+                    rdfs:comment "Subject concept addresses or solves a problem described by object." .
+
+kg:contrastsWith    rdf:type rdf:Property ;
+                    rdfs:label "contrasts with" ;
+                    rdfs:comment "Subject concept is in contrast or opposition to object concept." .
+
+kg:dependsOn        rdf:type rdf:Property ;
+                    rdfs:label "depends on" ;
+                    rdfs:comment "Subject concept depends on or requires the object concept." .
+
+kg:optimizes        rdf:type rdf:Property ;
+                    rdfs:label "optimizes" ;
+                    rdfs:comment "Subject concept is an optimization of or for the object concept." .
+
+kg:measuredBy       rdf:type rdf:Property ;
+                    rdfs:label "measured by" ;
+                    rdfs:comment "Subject concept is evaluated using the object metric." .
+
+kg:implementedUsing rdf:type rdf:Property ;
+                    rdfs:label "implemented using" ;
+                    rdfs:comment "Subject is implemented using object technology." .
+
+kg:comparedTo       rdf:type rdf:Property ;
+                    rdfs:label "compared to" ;
+                    rdfs:comment "Subject is compared against object in evaluation." .
+
+kg:supports         rdf:type rdf:Property ;
+                    rdfs:label "supports" ;
+                    rdfs:comment "Subject provides support for object capability." .
+
+kg:replacedBy       rdf:type rdf:Property ;
+                    rdfs:label "replaced by" ;
+                    rdfs:comment "Subject is superseded or replaced by object." .
+
+# ============================================================
+# Paper: Pathways
+# ============================================================
+
+pw:paper rdf:type kg:ResearchPaper ;
+    dc:title "Pathways: Asynchronous Distributed Dataflow for ML" ;
+    dc:creator "Paul Barham, Aakanksha Chowdhery, Jeff Dean, et al." ;
+    dc:date "2022"^^xsd:gYear ;
+    dc:identifier "arxiv:2203.12533" ;
+    rdfs:seeAlso <https://arxiv.org/abs/2203.12533> .
+
+# ============================================================
+# Concepts (Nodes)
+# ============================================================
+
+pwc:asynchronous_distributed_dataflow rdf:type kg:Concept ;
+    rdfs:label "Asynchronous Distributed Dataflow" ;
+    kg:paperSection "§4" ;
+    dc:description "Core execution model using DAGs of operators consuming/producing futures." .
+
+pwc:single_controller_model rdf:type kg:Concept ;
+    rdfs:label "Single-Controller Model" ;
+    kg:paperSection "§2, §4" ;
+    dc:description "Centralized coordinator managing all device execution on behalf of clients." .
+
+pwc:gang_scheduling rdf:type kg:Concept ;
+    rdfs:label "Gang Scheduling" ;
+    kg:paperSection "§2, §4.4" ;
+    dc:description "Consistent ordering of SPMD computations across all devices to avoid deadlock." .
+
+pwc:sharded_dataflow_graph rdf:type kg:Concept ;
+    rdfs:label "Sharded Dataflow Graph" ;
+    kg:paperSection "§2, §4.3" ;
+    dc:description "Compact graph where one node represents a computation across all shards." .
+
+pwc:resource_manager rdf:type kg:Concept ;
+    rdfs:label "Resource Manager" ;
+    kg:paperSection "§4.1" ;
+    dc:description "Global centralized manager for all accelerator devices with virtual device abstraction." .
+
+pwc:plaque_coordination rdf:type kg:Concept ;
+    rdfs:label "PLAQUE Coordination" ;
+    kg:paperSection "§4.3" ;
+    dc:description "Production sharded dataflow system used for cross-host coordination over DCN." .
+
+pwc:spmd_vs_mpmd rdf:type kg:Concept ;
+    rdfs:label "SPMD vs MPMD" ;
+    kg:paperSection "§1, §2" ;
+    dc:description "Comparison of single-program and multiple-program parallelism models." .
+
+pwc:accelerator_utilization_metrics rdf:type kg:Concept ;
+    rdfs:label "Accelerator Utilization Metrics" ;
+    kg:paperSection "§5, Appendix A" ;
+    dc:description "Performance benchmarks including dispatch overhead, throughput, and multi-tenancy." .
+
+pwc:jax_tf_comparison rdf:type kg:Concept ;
+    rdfs:label "JAX / TensorFlow Comparison" ;
+    kg:paperSection "§2, §3, §6" ;
+    dc:description "Comparison of Pathways against JAX, TF v1, PyTorch, and Ray." .
+
+pwc:sharded_object_store rdf:type kg:Concept ;
+    rdfs:label "Sharded Object Store" ;
+    kg:paperSection "§4.6" ;
+    dc:description "Per-host data management with HBM buffer tracking and opaque handles." .
+
+pwc:parallel_asynchronous_dispatch rdf:type kg:Concept ;
+    rdfs:label "Parallel Asynchronous Dispatch" ;
+    kg:paperSection "§4.5" ;
+    dc:description "Novel optimization running host-side work in parallel for regular compiled functions." .
+
+# ============================================================
+# Architectural relationships (has-component)
+# ============================================================
+
+pw:paper kg:hasComponent pwc:asynchronous_distributed_dataflow .
+pw:paper kg:hasComponent pwc:single_controller_model .
+pw:paper kg:hasComponent pwc:gang_scheduling .
+pw:paper kg:hasComponent pwc:sharded_dataflow_graph .
+pw:paper kg:hasComponent pwc:resource_manager .
+pw:paper kg:hasComponent pwc:plaque_coordination .
+pw:paper kg:hasComponent pwc:sharded_object_store .
+pw:paper kg:hasComponent pwc:parallel_asynchronous_dispatch .
+
+# ============================================================
+# Enablement relationships
+# ============================================================
+
+# Single-controller enables richer computation and resource management
+pwc:single_controller_model kg:enables pwc:gang_scheduling .
+pwc:single_controller_model kg:enables pwc:resource_manager .
+pwc:single_controller_model kg:enables pwc:spmd_vs_mpmd .
+
+# Async dataflow enables parallel dispatch and efficient pipelining
+pwc:asynchronous_distributed_dataflow kg:enables pwc:parallel_asynchronous_dispatch .
+pwc:asynchronous_distributed_dataflow kg:enables pwc:gang_scheduling .
+
+# Sharded dataflow enables scalability
+pwc:sharded_dataflow_graph kg:enables pwc:plaque_coordination .
+
+# Gang scheduling enables multi-tenancy
+pwc:gang_scheduling kg:enables pwc:accelerator_utilization_metrics .
+
+# Resource manager enables virtual devices
+pwc:resource_manager kg:enables pwc:sharded_object_store .
+
+# ============================================================
+# Dependency relationships
+# ============================================================
+
+# Gang scheduling depends on single-controller for centralized ordering
+pwc:gang_scheduling kg:dependsOn pwc:single_controller_model .
+
+# PLAQUE is the implementation substrate for coordination
+pwc:plaque_coordination kg:dependsOn pwc:sharded_dataflow_graph .
+
+# Parallel dispatch depends on async dataflow model
+pwc:parallel_asynchronous_dispatch kg:dependsOn pwc:asynchronous_distributed_dataflow .
+
+# Object store depends on resource manager for device tracking
+pwc:sharded_object_store kg:dependsOn pwc:resource_manager .
+
+# ============================================================
+# Optimization relationships
+# ============================================================
+
+# Parallel dispatch optimizes the async dataflow execution
+pwc:parallel_asynchronous_dispatch kg:optimizes pwc:asynchronous_distributed_dataflow .
+
+# Sharded dataflow graph optimizes coordination scalability
+pwc:sharded_dataflow_graph kg:optimizes pwc:plaque_coordination .
+
+# ============================================================
+# Contrast relationships
+# ============================================================
+
+# Single-controller contrasts with multi-controller (JAX/PyTorch)
+pwc:single_controller_model kg:contrastsWith pwc:jax_tf_comparison .
+
+# SPMD contrasts with MPMD
+pwc:spmd_vs_mpmd kg:contrastsWith pwc:jax_tf_comparison .
+
+# ============================================================
+# Measurement relationships
+# ============================================================
+
+pw:paper kg:measuredBy pwc:accelerator_utilization_metrics .
+pwc:gang_scheduling kg:measuredBy pwc:accelerator_utilization_metrics .
+pwc:parallel_asynchronous_dispatch kg:measuredBy pwc:accelerator_utilization_metrics .
+pwc:single_controller_model kg:measuredBy pwc:accelerator_utilization_metrics .
+
+# ============================================================
+# Implementation relationships
+# ============================================================
+
+pwc:asynchronous_distributed_dataflow kg:implementedUsing pwc:plaque_coordination .
+pwc:gang_scheduling kg:implementedUsing pwc:plaque_coordination .
+pwc:sharded_dataflow_graph kg:implementedUsing pwc:plaque_coordination .
+
+# ============================================================
+# Comparison relationships
+# ============================================================
+
+pw:paper kg:comparedTo pwc:jax_tf_comparison .
+
+# ============================================================
+# Problem-solving relationships
+# ============================================================
+
+# Parallel dispatch solves single-controller dispatch latency
+pwc:parallel_asynchronous_dispatch kg:solves pwc:single_controller_model .
+
+# Sharded dataflow solves graph explosion at scale
+pwc:sharded_dataflow_graph kg:solves pwc:jax_tf_comparison .
+
+# Gang scheduling solves TPU deadlock and multi-tenancy fairness
+pwc:gang_scheduling kg:solves pwc:spmd_vs_mpmd .
+
+# Resource manager solves hardware virtualization
+pwc:resource_manager kg:solves pwc:accelerator_utilization_metrics .

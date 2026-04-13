@@ -1,0 +1,31 @@
+{
+  "startMs": 500,
+  "defaultDuration": 400,
+  "elements": [
+    { "id": "title", "order": 1, "duration": 400 },
+    { "id": "titleLine", "order": 1, "duration": 300 },
+    { "id": "userLabel", "order": 2, "duration": 300 },
+    { "id": "logicalVar", "order": 3, "duration": 500 },
+    { "id": "logicalVarT", "order": 3, "duration": 400 },
+    { "id": "singleVar", "order": 3, "duration": 300 },
+    { "id": "midDivider", "order": 4, "duration": 300 },
+    { "id": "realLabel", "order": 5, "duration": 300 },
+    { "id": "arr0", "order": 6, "duration": 400 },
+    { "id": "arr1", "order": 6, "duration": 400 },
+    { "id": "arr2", "order": 6, "duration": 400 },
+    { "id": "host0", "order": 7, "duration": 400 },
+    { "id": "host0Label", "order": 7, "duration": 300 },
+    { "id": "host1", "order": 7, "duration": 400 },
+    { "id": "host1Label", "order": 7, "duration": 300 },
+    { "id": "host2", "order": 7, "duration": 400 },
+    { "id": "host2Label", "order": 7, "duration": 300 },
+    { "id": "shard0", "order": 8, "duration": 400 },
+    { "id": "shard0T", "order": 8, "duration": 300 },
+    { "id": "shard1", "order": 8, "duration": 400 },
+    { "id": "shard1T", "order": 8, "duration": 300 },
+    { "id": "shard2", "order": 8, "duration": 400 },
+    { "id": "shard2T", "order": 8, "duration": 300 },
+    { "id": "shardedBufLabel", "order": 9, "duration": 500 },
+    { "id": "keyInsight", "order": 10, "duration": 600 }
+  ]
+}
