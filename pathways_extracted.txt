@@ -1,0 +1,12 @@
+Pathways: Asynchronous Distributed Dataflow for ML
+Barham et al., 2022
+
+Abstract:
+Modern ML models are scaling to thousands of accelerators. Pathways is a new distributed dataflow system that provides a unified, efficient abstraction for these models. It supports heterogeneous, multi-modal workloads and time-multiplexes accelerators efficiently.
+
+Key findings:
+- Pathways achieves ~100% efficiency at 2048 TPUv4 chips.
+- It turns a datacenter into a single programmable supercomputer.
+- Moves away from SPMD-only constraints.
+
+[... Full text content extracted from paper segment research ...]
